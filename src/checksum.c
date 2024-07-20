@@ -1,0 +1,93 @@
+#include <stdlib.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <string.h>
+#include <netinet/in.h>
+#include "checksum.h"
+#include "types.h"
+
+uint16_t checksum_generic(uint16_t *ptr, size_t nbytes)
+{
+	unsigned short oddbyte = 0;
+	register long sum = 0;
+	register short answer = 0;
+
+	while (nbytes > 1) {
+		sum += *ptr++;
+		nbytes -= 2;
+	} 
+	if (nbytes == 1) {
+		*((unsigned char *)&oddbyte) = *(unsigned char *)ptr;
+		sum += oddbyte;
+	}
+	
+	sum = (sum >> 16) + (sum & 0xffff);
+	sum += (sum >> 16);
+	answer = (unsigned short)~sum;
+
+	return answer;
+}
+
+uint16_t checksum_tcp(struct ip_hdr *iph, struct tcp_hdr *tcph,
+			char *payload, size_t payload_size)
+{
+	struct psd_hdr psh;
+	char *psd;
+	size_t psd_size;
+	uint16_t check;
+
+	memcpy(&psh.src_addr, &iph->src_addr, 4);
+	memcpy(&psh.dst_addr, &iph->dst_addr, 4);
+
+	psh.reserve = 0;
+	psh.protocol = IPPROTO_TCP;
+	psh.length = htons(sizeof(struct tcp_hdr) + payload_size);
+
+	psd_size = sizeof(struct psd_hdr) + sizeof(struct tcp_hdr) + payload_size;
+
+	psd = malloc(psd_size);
+	memset(psd, 0, psd_size);
+
+	memcpy(psd, (char *)&psh, sizeof(struct psd_hdr));
+	memcpy(psd + sizeof(struct psd_hdr), tcph, sizeof(struct tcp_hdr));
+	memcpy(psd + sizeof(struct psd_hdr) + sizeof(struct tcp_hdr), payload, payload_size);
+
+	if (payload) {
+		memcpy(psd + sizeof(struct psd_hdr) + sizeof(struct tcp_hdr), payload, payload_size);
+	}
+
+	check = checksum_generic((uint16_t *)psd, psd_size);
+	free(psd);
+
+	return check;
+}
+
+uint16_t checksum_udp(struct ip_hdr *iph, struct udp_hdr *udph,
+			char *payload, size_t payload_size)
+{
+	struct psd_hdr psh;
+	char *psd;
+	size_t psd_size;
+	uint16_t check;
+
+	memcpy(&psh.src_addr, &iph->src_addr, 4);
+	memcpy(&psh.dst_addr, &iph->dst_addr, 4);
+
+	psh.reserve = 0;
+	psh.protocol = IPPROTO_UDP;
+	psh.length = htons(sizeof(struct udp_hdr) + payload_size);
+
+	psd_size = sizeof(struct psd_hdr) + sizeof(struct udp_hdr) + payload_size;
+
+	psd = malloc(psd_size);
+	memset(psd, 0, psd_size);
+
+	memcpy(psd, (char *)&psh, sizeof(struct psd_hdr));
+	memcpy(psd + sizeof(struct psd_hdr), udph, sizeof(struct udp_hdr));
+	memcpy(psd + sizeof(struct psd_hdr) + sizeof(struct udp_hdr), payload, payload_size);
+
+	check = checksum_generic((uint16_t *)psd, psd_size);
+	free(psd);
+
+        return check;
+}
