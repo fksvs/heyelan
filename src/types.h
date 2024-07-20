@@ -74,7 +74,11 @@ struct icmp_hdr {
 	uint8_t type;
 	uint8_t code;
 	uint16_t checksum;
-	uint32_t data;
+	union {
+		uint32_t data32[1];
+		uint16_t data16[2];
+		uint8_t data8[4];
+	} data;
 };
 
 struct psd_hdr {
