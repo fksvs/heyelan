@@ -53,7 +53,7 @@ struct tcp_hdr {
 #if defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN
 	uint8_t reserved:4;
 	uint8_t offset:4;
-#elif define(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN
+#elif defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN
 	uint8_t offset:4;
 	uint8_t reserved:4;
 #endif
