@@ -2,6 +2,7 @@
 #define TYPES_H
 
 #include <stdint.h>
+#include <sys/socket.h>
 
 #define ATTACK_TCP_SYN 0
 #define ATTACK_TCP_ACK 1
@@ -13,9 +14,11 @@
 #define BUFFER_SIZE 4096
 
 struct target_data {
+	int sockfd;
+	int attack_type;
 	uint32_t target_addr;
 	uint16_t target_port;
-	int attack_type;
+	struct sockaddr_in addr;
 };
 
 struct ip_hdr {

