@@ -15,6 +15,7 @@
 struct target_data {
 	uint32_t target_addr;
 	uint16_t target_port;
+	int attack_type;
 };
 
 struct ip_hdr {
