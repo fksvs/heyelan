@@ -2,9 +2,25 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
-#include "checksum.h"
+#include "utils.h"
 #include "types.h"
+
+int init_socket(int protocol)
+{
+	int sockfd;
+	int enable = 1;
+
+	if ((sockfd = socket(AF_INET, SOCK_RAW, protocol)) == -1) {
+		exit(EXIT_FAILURE);
+	}
+	if (setsockopt(sockfd, IPPROTO_IP, IP_HDRINCL, &enable, sizeof(int)) == -1) {
+		exit(EXIT_FAILURE);
+	}
+
+	return sockfd;
+}
 
 uint16_t checksum_generic(uint16_t *ptr, size_t nbytes)
 {

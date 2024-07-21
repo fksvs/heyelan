@@ -1,9 +1,11 @@
-#ifndef CHECKSUM_H
-#define CHECKSUM_H
+#ifndef UTILS_H
+#define UTILS_H
 
 #include <stdint.h>
 #include <stddef.h>
 #include "types.h"
+
+int init_socket(int protocol);
 
 uint16_t checksum_generic(uint16_t *ptr, size_t nbytes);
 uint16_t checksum_tcp(struct ip_hdr *iph, struct tcp_hdr *tcph,
