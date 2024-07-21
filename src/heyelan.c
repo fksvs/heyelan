@@ -12,6 +12,11 @@
 
 struct target_data target;
 
+void signal_exit()
+{
+	close(target.sockfd);
+}
+
 void heyelan_usage(char *argv[])
 {
 	fprintf(stdout, "\nusage: %s [options]\n\
@@ -72,6 +77,8 @@ int main(int argc, char *argv[])
 		fprintf(stdout, "target address not specified, aborting.\n");
 		exit(EXIT_FAILURE);
 	}
+
+	init_signal(&signal_exit);
 
 	if (target.attack_type == ATTACK_TCP_SYN)
 		attack_tcp_syn(&target);

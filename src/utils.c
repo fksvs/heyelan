@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -20,6 +21,21 @@ int init_socket(int protocol)
 	}
 
 	return sockfd;
+}
+
+void init_signal(void (*signal_exit))
+{
+	struct sigaction act;
+
+	memset(&act, 0, sizeof(struct sigaction));
+	act.sa_handler = signal_exit;
+
+	if (sigaction(SIGINT, &act, NULL) == -1) {
+		exit(EXIT_FAILURE);
+	}
+	if (sigaction(SIGTERM, &act, NULL) == -1) {
+		exit(EXIT_FAILURE);
+	}
 }
 
 uint16_t checksum_generic(uint16_t *ptr, size_t nbytes)
