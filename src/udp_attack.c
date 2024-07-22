@@ -15,7 +15,7 @@ void attack_udp(struct target_data *target)
 	struct ip_hdr *iph = (struct ip_hdr *)buffer;
 	struct udp_hdr *udph = (struct udp_hdr *)(buffer + sizeof(struct ip_hdr));
 
-	srand(time(NULL));
+	seed_rand(time(NULL));
 
 	target->addr.sin_family = AF_INET;
 	target->addr.sin_port = 0;

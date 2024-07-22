@@ -13,4 +13,8 @@ uint16_t checksum_tcp(struct ip_hdr *iph, struct tcp_hdr *tcph,
 			char *payload, size_t payload_size);
 uint16_t checksum_udp(struct ip_hdr *iph, struct udp_hdr *udph,
 			char *payload, size_t payload_size);
+
+void seed_rand(unsigned int seed);
+int random_num();
+
 #endif

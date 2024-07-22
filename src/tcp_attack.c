@@ -16,7 +16,7 @@ void attack_tcp(struct target_data *target)
 	struct tcp_hdr *tcph = (struct tcp_hdr *)(buffer + sizeof(struct ip_hdr));
 	uint8_t flag;
 
-	srand(time(NULL));
+	seed_rand(time(NULL));
 
 	target->addr.sin_family = AF_INET;
 	target->addr.sin_port = 0;

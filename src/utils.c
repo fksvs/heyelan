@@ -8,6 +8,9 @@
 #include "utils.h"
 #include "types.h"
 
+/* for prng */
+static unsigned int x;
+
 int init_socket(int protocol)
 {
 	int sockfd;
@@ -122,4 +125,19 @@ uint16_t checksum_udp(struct ip_hdr *iph, struct udp_hdr *udph,
 	free(psd);
 
         return check;
+}
+
+void seed_rand(unsigned int seed)
+{
+	x = seed;
+}
+
+int random_num()
+{
+	unsigned int number = 0;
+
+	number = (1103515245 * x + 12345) % (1 << 31);
+	x = number;
+
+	return number;
 }
