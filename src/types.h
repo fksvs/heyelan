@@ -6,10 +6,16 @@
 
 #define ATTACK_TCP_SYN 0
 #define ATTACK_TCP_ACK 1
-#define ATTACK_UDP 2
-#define ATTACK_HTTP_GET 3
-#define ATTACK_HTTP_POST 4
-#define ATTACK_ICMP_PING 5
+#define ATTACK_TCP_SYNACK 2
+#define ATTACK_TCP_PSHACK 3
+#define ATTACK_TCP_ACKFIN 4
+#define ATTACK_TCP_RST 5
+#define ATTACK_TCP_ALL 6
+#define ATTACK_TCP_NULL 7
+#define ATTACK_UDP 8
+#define ATTACK_HTTP_GET 9
+#define ATTACK_HTTP_POST 10
+#define ATTACK_ICMP_PING 11
 
 #define BUFFER_SIZE 4096
 
@@ -40,6 +46,7 @@ struct ip_hdr {
 	uint32_t dst_addr;
 };
 
+#define TCP_NULL 0x00
 #define TCP_FIN 0x01
 #define TCP_SYN 0x02
 #define TCP_RST 0x04
