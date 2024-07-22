@@ -8,7 +8,7 @@
 #include "utils.h"
 #include "types.h"
 
-void attack_icmp_ping(struct target_data *target)
+void attack_icmp(struct target_data *target)
 {
 	char buffer[BUFFER_SIZE];
 	struct ip_hdr *iph = (struct ip_hdr *)buffer;

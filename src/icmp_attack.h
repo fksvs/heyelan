@@ -3,6 +3,6 @@
 
 #include "types.h"
 
-void attack_icmp_ping(struct target_data *target);
+void attack_icmp(struct target_data *target);
 
 #endif

