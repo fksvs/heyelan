@@ -20,10 +20,10 @@ void build_ip(struct ip_hdr *iph, uint16_t length, uint8_t protocol, uint32_t ds
 	iph->checksum = checksum_generic((uint16_t *)iph, iph->length);
 }
 
-void build_tcp(struct ip_hdr *iph, struct tcp_hdr *tcph, uint8_t flag)
+void build_tcp(struct ip_hdr *iph, struct tcp_hdr *tcph, uint8_t flag, uint16_t dst_port)
 {
 	tcph->src_port = random_num() & 0xffff;
-	tcph->dst_port = random_num() & 0xffff;
+	tcph->dst_port = dst_port == 0 ? random_num() & 0xffff : htons(dst_port);
 	tcph->seq_num = random_num();
 	tcph->ack_num = 0;
 	tcph->offset = 5;
@@ -35,10 +35,10 @@ void build_tcp(struct ip_hdr *iph, struct tcp_hdr *tcph, uint8_t flag)
 	tcph->checksum = checksum_tcp(iph, tcph, NULL, 0);
 }
 
-void build_udp(struct ip_hdr *iph, struct udp_hdr *udph)
+void build_udp(struct ip_hdr *iph, struct udp_hdr *udph, uint16_t dst_port)
 {
 	udph->src_port = random_num() & 0xffff;
-        udph->dst_port = random_num() & 0xffff;
+        udph->dst_port = dst_port == 0 ? random_num() & 0xffff : htons(dst_port);
         udph->length = htons(sizeof(struct udp_hdr));
         udph->checksum = 0;
 	udph->checksum = checksum_udp(iph, udph, NULL, 0);

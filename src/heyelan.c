@@ -23,7 +23,7 @@ struct attack_map_t attack_map[] = {
 	{"pshack", ATTACK_TCP_PSHACK},
 	{"ackfin", ATTACK_TCP_ACKFIN},
 	{"rst", ATTACK_TCP_RST},
-	{"all", ATTACK_TCP_ALL},
+	{"xmas", ATTACK_TCP_XMAS},
 	{"null", ATTACK_TCP_NULL},
 	{"udp", ATTACK_UDP},
 	{"get", ATTACK_HTTP_GET},
@@ -50,7 +50,7 @@ void heyelan_usage(char *argv[])
 		"\tpshack : PSH-ACK flood attack\n"
 		"\tackfin : ACK-FIN flood attack\n"
 		"\trst    : RST flood attack\n"
-		"\tall    : all flags flood attack\n"
+		"\txmas    : all flags flood attack\n"
 		"\tnull   : no flags flood attack\n"
 		"\tudp    : UDP flood attack\n"
 		"\tget    : HTTP GET flood attack\n"

