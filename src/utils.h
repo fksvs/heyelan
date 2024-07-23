@@ -5,6 +5,8 @@
 #include <stddef.h>
 #include "types.h"
 
+void parse_args(int argc, char *argv[], struct target_data *target);
+
 int init_socket(int protocol);
 void init_signal(void (*signal_exit));
 

@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <arpa/inet.h>
 #include "packet.h"
 #include "utils.h"

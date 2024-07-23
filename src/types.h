@@ -2,7 +2,6 @@
 #define TYPES_H
 
 #include <stdint.h>
-#include <sys/socket.h>
 
 #define ATTACK_TCP_SYN 0
 #define ATTACK_TCP_ACK 1
@@ -22,9 +21,8 @@
 struct target_data {
 	int sockfd;
 	int attack_type;
-	uint32_t target_addr;
-	uint16_t target_port;
-	struct sockaddr_in addr;
+	uint32_t address;
+	uint16_t port;
 };
 
 struct ip_hdr {
@@ -99,5 +97,15 @@ struct psd_hdr {
 	uint8_t protocol;
 	uint16_t length;
 };
+
+#define COLOR_RESET "\x1b[0m"
+#define COLOR_BLACK "\x1b[30m"
+#define COLOR_RED "\x1b[31m"
+#define COLOR_GREEN "\x1b[32m"
+#define COLOR_YELLOW "\x1b[33m"
+#define COLOR_BLUE "\x1b[34m"
+#define COLOR_MAGENTA "\x1b[35m"
+#define COLOR_CYAN "\x1b[36m"
+#define COLOR_WHITE "\x1b[37m"
 
 #endif
