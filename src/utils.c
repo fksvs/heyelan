@@ -127,7 +127,7 @@ int init_socket(int protocol)
 	return sockfd;
 }
 
-void init_signal(void (*signal_exit))
+void init_signal(void (*signal_exit)())
 {
 	struct sigaction act;
 
