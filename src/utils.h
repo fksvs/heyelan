@@ -9,6 +9,7 @@ void parse_args(int argc, char *argv[], struct target_data *target);
 
 int init_socket(int protocol);
 void init_signal(void (*signal_exit)());
+void init_attack_info(struct target_data *target, struct attack_info *info);
 
 uint16_t checksum_generic(uint16_t *ptr, size_t nbytes);
 uint16_t checksum_tcp(struct ip_hdr *iph, struct tcp_hdr *tcph,

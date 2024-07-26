@@ -2,6 +2,7 @@
 #define TYPES_H
 
 #include <stdint.h>
+#include <netinet/in.h>
 
 #define ATTACK_TCP_SYN 0
 #define ATTACK_TCP_ACK 1
@@ -23,6 +24,16 @@ struct target_data {
 	int attack_type;
 	uint32_t address;
 	uint16_t port;
+};
+
+struct attack_info {
+	char attack_type[50];
+	char target_address[INET_ADDRSTRLEN];
+	char target_port[10];
+	char start_time[50];
+	uint64_t packets_send;
+	uint64_t packets_fail;
+	uint64_t total_size;
 };
 
 struct ip_hdr {

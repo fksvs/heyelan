@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -16,25 +17,25 @@
 static unsigned int x;
 
 struct attack_map_t {
-	char *name;
+	char *option_name;
+	char *attack_name;
 	int attack_id;
 };
 
-
 static struct attack_map_t attack_map[] = {
-	{"syn", ATTACK_TCP_SYN},
-	{"ack", ATTACK_TCP_ACK},
-	{"synack", ATTACK_TCP_SYNACK},
-	{"pshack", ATTACK_TCP_PSHACK},
-	{"ackfin", ATTACK_TCP_ACKFIN},
-	{"rst", ATTACK_TCP_RST},
-	{"xmas", ATTACK_TCP_XMAS},
-	{"null", ATTACK_TCP_NULL},
-	{"udp", ATTACK_UDP},
-	{"get", ATTACK_HTTP_GET},
-	{"post", ATTACK_HTTP_POST},
-	{"ping", ATTACK_ICMP_PING},
-	{NULL, 0}
+	{"syn", "SYN flood attack", ATTACK_TCP_SYN},
+	{"ack", "ACK flood attack", ATTACK_TCP_ACK},
+	{"synack", "SYN-ACK flood attack", ATTACK_TCP_SYNACK},
+	{"pshack", "PSH-ACK flood attack", ATTACK_TCP_PSHACK},
+	{"ackfin", "ACK-FIN flood attack", ATTACK_TCP_ACKFIN},
+	{"rst", "RST flood attack", ATTACK_TCP_RST},
+	{"xmas", "TCP XMAS flood attack", ATTACK_TCP_XMAS},
+	{"null", "TCP NULL flood attack", ATTACK_TCP_NULL},
+	{"udp", "UDP flood attack", ATTACK_UDP},
+	{"get", "GET flood attack", ATTACK_HTTP_GET},
+	{"post", "POST flood attack", ATTACK_HTTP_POST},
+	{"ping", "Ping flood attack", ATTACK_ICMP_PING},
+	{NULL, NULL, 0}
 };
 
 static void heyelan_usage(char *argv[])
@@ -71,15 +72,16 @@ void parse_args(int argc, char *argv[], struct target_data *target)
 	}
 
 	target->attack_type = -1;
-	for (int i = 0; attack_map[i].name != NULL; i++) {
-		if (!strncmp(argv[1], attack_map[i].name, strlen(attack_map[i].name)) &&
-			strlen(argv[1]) == strlen(attack_map[i].name)) {
+	for (int i = 0; attack_map[i].option_name != NULL; i++) {
+		if (!strncmp(argv[1], attack_map[i].option_name,
+				strlen(attack_map[i].option_name)) &&
+			strlen(argv[1]) == strlen(attack_map[i].option_name)) {
 			target->attack_type = attack_map[i].attack_id;
 			break;
 		}
 	}
 
-	if (target->attack_type) {
+	if (target->attack_type == -1) {
 		fprintf(stderr, "%s\"%s\" is not a attack type, aborting.\n%s",
 				COLOR_RED, argv[1], COLOR_RESET);
 		exit(EXIT_FAILURE);
@@ -144,6 +146,44 @@ void init_signal(void (*signal_exit)())
 				COLOR_RED, strerror(errno), COLOR_RESET);
 		exit(EXIT_FAILURE);
 	}
+}
+
+void init_attack_info(struct target_data *target, struct attack_info *info)
+{
+	time_t t;
+	struct tm *tmp;
+
+	for (int i = 0; attack_map[i].attack_name != NULL; i++) {
+		if (target->attack_type == attack_map[i].attack_id) {
+			strncpy(info->attack_type, attack_map[i].attack_name,
+				sizeof(info->attack_type));
+			break;
+		}
+	}
+
+	inet_ntop(AF_INET, &target->address, info->target_address, INET_ADDRSTRLEN);
+	if (target->port != 0) {
+		snprintf(info->target_port, sizeof(info->target_port), "%u", target->port); 
+	} else {
+		strncpy(info->target_port, "random", sizeof(info->target_port));
+	}
+
+	t = time(NULL);
+	if ((tmp = localtime(&t)) == NULL) {
+		fprintf(stderr, "%san error occured while getting time : %s\n%s",
+			COLOR_RED, strerror(errno), COLOR_RESET);
+		exit(EXIT_FAILURE);
+	}
+	if (strftime(info->start_time, sizeof(info->start_time),
+			"%H:%M:%S %d.%m.%Y", tmp) == 0) {
+		fprintf(stderr, "%san error occured while using strftime%s",
+			COLOR_RED, COLOR_RESET);
+		exit(EXIT_FAILURE);
+	}
+
+	info->packets_send = 0;
+	info->packets_fail = 0;
+	info->total_size = 0;
 }
 
 uint16_t checksum_generic(uint16_t *ptr, size_t nbytes)
