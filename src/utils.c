@@ -23,18 +23,18 @@ struct attack_map_t {
 };
 
 static struct attack_map_t attack_map[] = {
-	{"syn", "SYN flood attack", ATTACK_TCP_SYN},
-	{"ack", "ACK flood attack", ATTACK_TCP_ACK},
-	{"synack", "SYN-ACK flood attack", ATTACK_TCP_SYNACK},
-	{"pshack", "PSH-ACK flood attack", ATTACK_TCP_PSHACK},
-	{"ackfin", "ACK-FIN flood attack", ATTACK_TCP_ACKFIN},
-	{"rst", "RST flood attack", ATTACK_TCP_RST},
-	{"xmas", "TCP XMAS flood attack", ATTACK_TCP_XMAS},
-	{"null", "TCP NULL flood attack", ATTACK_TCP_NULL},
-	{"udp", "UDP flood attack", ATTACK_UDP},
-	{"get", "GET flood attack", ATTACK_HTTP_GET},
-	{"post", "POST flood attack", ATTACK_HTTP_POST},
-	{"ping", "Ping flood attack", ATTACK_ICMP_PING},
+	{"syn", "SYN flood", ATTACK_TCP_SYN},
+	{"ack", "ACK flood", ATTACK_TCP_ACK},
+	{"synack", "SYN-ACK flood", ATTACK_TCP_SYNACK},
+	{"pshack", "PSH-ACK flood", ATTACK_TCP_PSHACK},
+	{"ackfin", "ACK-FIN flood", ATTACK_TCP_ACKFIN},
+	{"rst", "RST flood", ATTACK_TCP_RST},
+	{"xmas", "TCP XMAS flood", ATTACK_TCP_XMAS},
+	{"null", "TCP NULL flood", ATTACK_TCP_NULL},
+	{"udp", "UDP flood", ATTACK_UDP},
+	{"get", "GET flood", ATTACK_HTTP_GET},
+	{"post", "POST flood", ATTACK_HTTP_POST},
+	{"ping", "Ping flood", ATTACK_ICMP_PING},
 	{NULL, NULL, 0}
 };
 
@@ -184,6 +184,58 @@ void init_attack_info(struct target_data *target, struct attack_info *info)
 	info->packets_send = 0;
 	info->packets_fail = 0;
 	info->total_size = 0;
+}
+
+void print_attack_header(struct attack_info *info)
+{
+
+	fprintf(stdout, "\n%s         _   _                 _             \n"
+			"        | | | |               | |            \n"
+			"        | |_| | ___ _   _  ___| | __ _ _ __  \n"
+			"        |  _  |/ _ | | | |/ _ | |/ _` | '_ \\ \n"
+			"        | | | |  __| |_| |  __| | (_| | | | |\n"
+			"        \\_| |_/\\___|\\__, |\\___|_|\\__,_|_| |_|\n"
+			"                     __/ | https://github.com/fksvs\n"
+			"                    |___/                    %s\n\n",
+		COLOR_GREEN, COLOR_RESET);
+
+	fprintf(stdout, " %s started to %s:%s at %s\n",
+		info->attack_type, info->target_address,
+		info->target_port, info->start_time);
+}
+
+void print_attack_info(struct attack_info *info)
+{
+	static uint64_t packets_send_last = 0;
+	static uint64_t total_size_last= 0;
+	static time_t last_time = 0;
+	time_t curr_time = 0;
+	double elapsed_time = 0;
+	double pkts_per_sec = 0;
+	double throughput= 0;
+
+	curr_time = time(NULL);
+	if (last_time == 0) {
+		last_time = curr_time;
+		packets_send_last = info->packets_send;
+		total_size_last= info->total_size;
+		return;
+	}
+
+	elapsed_time = difftime(curr_time, last_time);
+	if (elapsed_time >= 1.0) {
+		pkts_per_sec = (double)(info->packets_send - packets_send_last) / elapsed_time;
+		throughput = (double)(info->total_size - total_size_last) / elapsed_time / 1000 / 1000;
+		packets_send_last = info->packets_send;
+		total_size_last= info->total_size;
+		last_time = time(NULL);
+
+		fprintf(stdout, " %spackets send : %lu | packets fail : %lu |"
+				" packets/s : %0.1lf | throughput : %0.2lf Mbit/s%s\r",
+			COLOR_GREEN, info->packets_send, info->packets_fail,
+			pkts_per_sec, throughput, COLOR_RESET);
+		fflush(stdout);
+	}
 }
 
 uint16_t checksum_generic(uint16_t *ptr, size_t nbytes)

